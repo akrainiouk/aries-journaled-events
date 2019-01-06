@@ -18,31 +18,29 @@
 
 package org.apache.aries.events.mongo;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-
 import com.mongodb.Mongo;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.model.Filters;
 import org.apache.aries.events.api.Message;
-import org.apache.aries.events.api.Received;
 import org.apache.aries.events.mongo.Common.Fields;
 import org.bson.Document;
 import org.bson.types.Binary;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import static java.lang.Math.min;
 import static java.lang.System.currentTimeMillis;
 import static java.lang.Thread.sleep;
 import static java.util.Collections.emptyList;
-import static org.apache.aries.events.mongo.Common.Fields.PAYLOAD;
 import static org.apache.aries.events.mongo.Common.Fields.INDEX;
+import static org.apache.aries.events.mongo.Common.Fields.PAYLOAD;
 import static org.apache.aries.events.mongo.Common.upcomingIndex;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -127,7 +125,7 @@ final class MessageReceiverImpl implements MessageReceiver {
                 if (idx == startIndex + i) {
                     Binary payload = document.get(PAYLOAD, Binary.class);
                     Map<String, String> props = (Map<String, String>) document.get(Fields.PROPS);
-                    Message message = new MongoMessage(payload.getData(), props);
+                    Message message = new Message(payload.getData(), props);
                     collected.add(message);
                 } else {
                     if (i == 0) {
