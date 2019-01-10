@@ -19,19 +19,20 @@ package org.apache.aries.events.memory;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
 
 import org.apache.aries.events.api.Message;
 import org.apache.aries.events.api.Messaging;
 import org.apache.aries.events.api.Position;
-import org.apache.aries.events.api.SubscribeRequestBuilder;
-import org.apache.aries.events.api.SubscribeRequestBuilder.SubscribeRequest;
+import org.apache.aries.events.api.Received;
+import org.apache.aries.events.api.Seek;
 import org.apache.aries.events.api.Subscription;
 import org.apache.aries.events.api.Type;
 import org.osgi.service.component.annotations.Component;
 
 @Component
 @Type("memory")
-public class InMemoryMessaging implements Messaging {
+public class InMemoryMessaging extends Messaging {
     private final Map<String, Topic> topics = new ConcurrentHashMap<>();
     private final int keepAtLeast;
     
@@ -51,10 +52,11 @@ public class InMemoryMessaging implements Messaging {
     }
 
     @Override
-    public Subscription subscribe(SubscribeRequestBuilder requestBuilder) {
-        SubscribeRequest request = requestBuilder.build();
-        Topic topic = getOrCreate(request.getTopic());
-        return topic.subscribe(request);
+    protected Subscription subscribe(
+            String topic, Position position, Seek seek, Consumer<Received> callback
+    ) {
+        Topic inMemoryTopic = getOrCreate(topic);
+        return inMemoryTopic.subscribe((MemoryPosition) position, seek, callback);
     }
 
     @Override

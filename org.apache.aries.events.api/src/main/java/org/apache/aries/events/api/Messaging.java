@@ -17,10 +17,12 @@
  */
 package org.apache.aries.events.api;
 
+import java.util.function.Consumer;
+
 /**
  * Journaled messaging API
  */
-public interface Messaging {
+public abstract class Messaging {
     /**
      * Send a message to a topic. When this method returns the message 
      * is safely persisted.
@@ -30,15 +32,18 @@ public interface Messaging {
      * Two messages sent sequentially to the same topic by the same
      * thread, are guaranteed to be consumed in the same order by all subscribers.
      */
-    void send(String topic, Message message);
+    public abstract void send(String topic, Message message);
 
     /**
      * Subscribe to a topic.
      * The returned subscription must be closed by the caller to unsubscribe.
-     *
-     * @param request to subscribe
+     * @param request subscription request
+     * @return newly created subscription object that should be used to
+     * unsubscribe by invoking its close() method
      */
-    Subscription subscribe(SubscribeRequestBuilder request);
+    public final Subscription subscribe(SubscribeRequest request) {
+        return subscribe(request.topic, request.position, request.seek, request.callback);
+    }
 
     /**
      * Deserialize the position from the string
@@ -46,6 +51,13 @@ public interface Messaging {
      * @param position
      * @return
      */
-    Position positionFromString(String position);
+    public abstract Position positionFromString(String position);
+
+    protected abstract Subscription subscribe(
+            String topic,
+            Position position,
+            Seek seek,
+            Consumer<Received> callback
+    );
 
 }

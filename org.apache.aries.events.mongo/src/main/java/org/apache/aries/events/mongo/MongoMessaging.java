@@ -25,8 +25,8 @@ import com.mongodb.client.MongoDatabase;
 import org.apache.aries.events.api.Message;
 import org.apache.aries.events.api.Messaging;
 import org.apache.aries.events.api.Position;
-import org.apache.aries.events.api.SubscribeRequestBuilder;
-import org.apache.aries.events.api.SubscribeRequestBuilder.SubscribeRequest;
+import org.apache.aries.events.api.Received;
+import org.apache.aries.events.api.Seek;
 import org.apache.aries.events.api.Subscription;
 import org.bson.Document;
 import org.osgi.service.component.annotations.Activate;
@@ -35,6 +35,7 @@ import org.osgi.service.component.annotations.Deactivate;
 import org.osgi.service.metatype.annotations.Designate;
 
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import static org.apache.aries.events.mongo.Common.DEFAULT_DB_NAME;
 import static org.apache.aries.events.mongo.MongoPosition.index;
@@ -47,7 +48,7 @@ import static org.osgi.service.component.annotations.ConfigurationPolicy.REQUIRE
 
 @Component(service = Messaging.class, configurationPolicy = REQUIRE)
 @Designate(ocd = MongoEndpoint.class)
-public class MongoMessaging implements Messaging {
+public class MongoMessaging extends Messaging {
 
     @Override
     public void send(String topic, Message message) {
@@ -56,11 +57,12 @@ public class MongoMessaging implements Messaging {
     }
 
     @Override
-    public Subscription subscribe(SubscribeRequestBuilder requestBuilder) {
-        SubscribeRequest request = requestBuilder.build();
-        MongoCollection<Document> collection = database.getCollection(request.getTopic());
+    protected Subscription subscribe(
+            String topic, Position position, Seek seek, Consumer<Received> callback
+    ) {
+        MongoCollection<Document> collection = database.getCollection(topic);
         MessageReceiver receiver = messageReceiver(collection);
-        return subscription(receiver, index(request.getPosition()), request.getSeek(), request.getCallback());
+        return subscription(receiver, index(position), seek, callback);
     }
 
     @Override

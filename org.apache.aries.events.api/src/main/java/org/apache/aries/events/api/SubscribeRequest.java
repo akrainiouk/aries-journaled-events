@@ -24,12 +24,16 @@ import java.util.function.Consumer;
 import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
-public final class SubscribeRequestBuilder {
-    
-    private SubscribeRequest subscribeRequest;
+public final class SubscribeRequest {
 
-    private SubscribeRequestBuilder(SubscribeRequest subscribeRequest) {
-        this.subscribeRequest = subscribeRequest;
+    final String topic;
+    final Consumer<Received> callback;
+    Position position = null;
+    Seek seek = Seek.latest;
+
+    private SubscribeRequest(String topic, Consumer<Received> callback) {
+        this.topic = topic;
+        this.callback = callback;
     }
 
     /**
@@ -39,8 +43,8 @@ public final class SubscribeRequestBuilder {
      * @param callback to be invoked for each message consumed
      * @return a new subscription request
      */
-    public static SubscribeRequestBuilder to(String topic, Consumer<Received> callback) {
-        return new SubscribeRequestBuilder(new SubscribeRequest(topic, callback));
+    public static SubscribeRequest to(String topic, Consumer<Received> callback) {
+        return new SubscribeRequest(topic, callback);
     }
     
     /**
@@ -49,8 +53,8 @@ public final class SubscribeRequestBuilder {
      * @param position in the topic to start consuming from
      * @return the updated subscribe request
      */
-    public SubscribeRequestBuilder startAt(Position position) {
-        this.subscribeRequest.position = position;
+    public SubscribeRequest startAt(Position position) {
+        this.position = position;
         return this;
     }
     
@@ -62,41 +66,9 @@ public final class SubscribeRequestBuilder {
      * @param seek where to start consuming when no valid position is specified
      * @return the updated subscribe request
      */
-    public SubscribeRequestBuilder seek(Seek seek) {
-        this.subscribeRequest.seek = requireNonNull(seek, "Seek must not be null");
+    public SubscribeRequest seek(Seek seek) {
+        this.seek = requireNonNull(seek, "Seek must not be null");
         return this;
     }
 
-    
-    public SubscribeRequest build() {
-        return subscribeRequest;
-    }
-
-    public static class SubscribeRequest {
-        private final String topic;
-        private final Consumer<Received> callback;
-        private Position position;
-        private Seek seek = Seek.latest;
-        
-        private SubscribeRequest(String topic, Consumer<Received> callback) {
-            this.topic = topic;
-            this.callback = callback;
-        }
-        
-        public String getTopic() {
-            return topic;
-        }
-        
-        public Position getPosition() {
-            return position;
-        }
-        
-        public Seek getSeek() {
-            return seek;
-        }
-        
-        public Consumer<Received> getCallback() {
-            return callback;
-        }
-    }
 }

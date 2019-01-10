@@ -26,7 +26,6 @@ import org.apache.aries.events.api.Message;
 import org.apache.aries.events.api.Position;
 import org.apache.aries.events.api.Received;
 import org.apache.aries.events.api.Seek;
-import org.apache.aries.events.api.SubscribeRequestBuilder.SubscribeRequest;
 import org.apache.aries.events.api.Subscription;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,10 +47,10 @@ class Topic {
         return new MemoryPosition(offset);
     }
 
-    public Subscription subscribe(SubscribeRequest request) {
-        long startOffset = getStartOffset((MemoryPosition) request.getPosition(), request.getSeek());
+    public Subscription subscribe(MemoryPosition position, Seek seek, Consumer<Received> callback) {
+        long startOffset = getStartOffset(position, seek);
         log.debug("Consuming from " + startOffset);
-        return new TopicSubscription(startOffset, request.getCallback());
+        return new TopicSubscription(startOffset, callback);
     }
 
     private long getStartOffset(MemoryPosition position, Seek seek) {
